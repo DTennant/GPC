@@ -62,3 +62,6 @@ If you use this code in your research, please consider citing our paper:
     pages     = {16623-16633}
 }
 ```
+## Acknowledgements
+
+The codebase is largely built on this repo: https://github.com/sgvaze/generalized-category-discovery.
