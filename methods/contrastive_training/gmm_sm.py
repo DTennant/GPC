@@ -58,7 +58,7 @@ def get_sub_assign_with_one_cluster(feat, labels, k, prior):
         mu_subs = torch.cat([torch.zeros_like(mu_subs), mu_subs], dim=0)
         # NOTE: empty sub clusters
     else:
-        km = K_Means(k=2, init='k-means++', random_state=1, n_jobs=None, pairwise_batch_size=128, use_gpu=True)
+        km = K_Means(k=2, init='k-means++', random_state=1, n_jobs=None, pairwise_batch_size=128)
         km.fit(class_sub_feat)
         class_sub_assign = km.labels_.cpu()
         mu_subs = km.cluster_centers_
@@ -144,8 +144,8 @@ def split_and_merge_op(u_feat, l_feat, l_targets, args, index=0, stage=0):
         'im2cluster': [],
     }
 
-    km = K_Means(k=class_num, init='k-means++', random_state=1, n_jobs=None, pairwise_batch_size=128, use_gpu=True)
-    
+    # km = K_Means(k=class_num, init='k-means++', random_state=1, n_jobs=None, pairwise_batch_size=128, use_gpu=True)
+    km = K_Means(k=class_num, init='k-means++', random_state=1, n_jobs=None, pairwise_batch_size=128)
     cat_feat = torch.cat((l_feat, u_feat), dim=0)
 
     km.fit_mix(u_feat, l_feat, l_targets, )
@@ -294,7 +294,7 @@ def run_kmeans(u_feat, l_feat, l_targets, args, index=0):
         'im2cluster': [],
     }
 
-    km = K_Means(k=class_num, init='k-means++', random_state=1, n_jobs=None, pairwise_batch_size=128, use_gpu=True)
+    km = K_Means(k=class_num, init='k-means++', random_state=1, n_jobs=None, pairwise_batch_size=128, )
     
     cat_feat = torch.cat((l_feat, u_feat), dim=0)
     if index == 0:
@@ -456,6 +456,7 @@ def train(projection_head, model, train_loader, test_loader, unlabelled_train_lo
                             if proto_out.shape[0] == 0:
                                 accp = 0
                             else:
+                                
                                 accp = accuracy(proto_out, proto_target)[0]
                             proto_acc_record.update(accp.item(), q.size(0))
 
@@ -568,7 +569,8 @@ def test_kmeans(model, test_loader, train_loader, epoch, save_name, args, cluste
     l_feats = all_feats[:labeled_length]#.detach().clone().cuda()
     u_feats = all_feats[labeled_length:]#.detach().clone().cuda()
     l_targets = targets[:labeled_length]#.cuda()
-
+    
+    
     # __import__("ipdb").set_trace()
 
     args.logger.info('Collating features from testing set...')
@@ -620,7 +622,8 @@ def test_kmeans(model, test_loader, train_loader, epoch, save_name, args, cluste
         centroids, preds = kmeans_faiss(all_feats, k=num_clusters, verbose=True)
     elif args.use_sskmeans:
         
-        kmeans = K_Means(k=num_clusters, pairwise_batch_size=1024, tolerance=1e-4, use_gpu=True)
+        # kmeans = K_Means(k=num_clusters, pairwise_batch_size=1024, tolerance=1e-4, use_gpu=True)
+        kmeans = K_Means(k=num_clusters, pairwise_batch_size=1024, tolerance=1e-4)
         kmeans.fit_mix(u_feats, l_feats, l_targets)
         preds = kmeans.predict(test_feats)
         preds = preds.numpy()

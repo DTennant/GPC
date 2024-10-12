@@ -195,7 +195,7 @@ def prototypical_logits(q, k, cluster_result, uq_idxs, all_uq_idxs, use_all_prot
         all_uq_idxs = all_uq_idxs.numpy().tolist()
     uq_idxs = uq_idxs.numpy().tolist()
     uq_idxs = torch.from_numpy(np.array([all_uq_idxs.index(item) for item in uq_idxs])).long().cuda()
-
+    
     for idx, (im2cluster,prototypes,density) in enumerate(zip(cluster_result['im2cluster'],
                                                             cluster_result['centroids'],
                                                             cluster_result['density'])):
@@ -235,10 +235,29 @@ def prototypical_logits(q, k, cluster_result, uq_idxs, all_uq_idxs, use_all_prot
             temp_proto = density[torch.cat([pos_proto_id, torch.LongTensor(neg_proto_id).cuda()],dim=0)]  
             logits_proto /= temp_proto
             logits_proto_k /= temp_proto
-            
+        if torch.is_tensor(labels_proto):
+            device = labels_proto.device
+            # print(f"labels_proto is on device: {device}")
+            if not labels_proto.is_cuda:
+                labels_proto = labels_proto.to('cuda')
+        
+        if torch.is_tensor(logits_proto):
+            device = logits_proto.device
+          
+            if not logits_proto.is_cuda:
+                logits_proto = logits_proto.to('cuda')
+       
+        if torch.is_tensor(logits_proto_k):
+            device = logits_proto_k.device
+           
+            if not logits_proto_k.is_cuda:
+                logits_proto_k = logits_proto_k.to('cuda')
+        else:
+            print( "logits_proto_k variable is not a tensor." )  
         proto_labels.append(labels_proto)
         proto_logits.append(logits_proto)
         proto_logits_k.append(logits_proto_k)
+    
     return proto_labels, proto_logits, proto_logits_k 
 
 
